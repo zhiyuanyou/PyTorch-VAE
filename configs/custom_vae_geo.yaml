@@ -1,0 +1,42 @@
+model_params:
+  name: VanillaVAE
+  encoder:
+    type: models.encoders.resnet18
+    kwargs:
+      inchannels: 3
+  decoder:
+    type: models.decoders.resnet18
+    kwargs:
+      inchannels: 512
+  stride: 64
+  latent_dim: 1024
+  patch_size: &patch_size 128
+
+data_params:
+  type: CustomVAEDataset
+  opt_dataset: 
+    train:
+      dataroot_gt: /home/zyyou/datasets_bk/GEO/train/
+      enlarge_ratio: 100
+    val:
+      dataroot_gt: /home/zyyou/datasets_bk/GEO/test/
+    train_batch_size: 64
+    val_batch_size:  64
+    resize: 256
+    patch_size: *patch_size
+    num_workers: 4
+
+exp_params:
+  LR: 0.005
+  weight_decay: 0.0
+  scheduler_gamma: 0.95
+  kld_weight: 0.00025
+  manual_seed: 1265
+
+trainer_params:
+  gpus: [2]
+  max_epochs: 100
+
+logging_params:
+  save_dir: logs/GEO/
+  name: VanillaVAE
