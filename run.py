@@ -1,17 +1,18 @@
-import os
-import yaml
 import argparse
-import numpy as np
+import os
 from pathlib import Path
-from models import *
-from experiment import VAEXperiment
-import torch.backends.cudnn as cudnn
+
+import yaml
+import datasets
+
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.utilities.seed import seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
-from dataset import VAEDataset
 from pytorch_lightning.plugins import DDPPlugin
+
+from models import *
+from experiment import VAEXperiment
 
 
 parser = argparse.ArgumentParser(description='Generic runner for VAE models')
@@ -39,7 +40,8 @@ model = vae_models[config['model_params']['name']](**config['model_params'])
 experiment = VAEXperiment(model,
                           config['exp_params'])
 
-data = VAEDataset(**config["data_params"], pin_memory=len(config['trainer_params']['gpus']) != 0)
+dataset_cls = getattr(datasets, config["data_params"]["type"])
+data = dataset_cls(**config["data_params"], pin_memory=len(config['trainer_params']['gpus']) != 0)
 
 data.setup()
 runner = Trainer(logger=tb_logger,

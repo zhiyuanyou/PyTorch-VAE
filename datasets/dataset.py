@@ -140,7 +140,7 @@ class VAEDataset(LightningDataModule):
             self.data_dir,
             split='train',
             transform=train_transforms,
-            download=False,
+            download=True,
         )
         
         # Replace CelebA with your dataset
@@ -148,7 +148,7 @@ class VAEDataset(LightningDataModule):
             self.data_dir,
             split='test',
             transform=val_transforms,
-            download=False,
+            download=True,
         )
 #       ===============================================================
         
@@ -178,4 +178,3 @@ class VAEDataset(LightningDataModule):
             shuffle=True,
             pin_memory=self.pin_memory,
         )
-     
