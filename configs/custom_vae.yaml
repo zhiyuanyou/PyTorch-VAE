@@ -1,19 +1,21 @@
 model_params:
   name: 'VanillaVAE'
   in_channels: 3
-  latent_dim: 128
+  hidden_dims: [32, 64, 128, 256, 256, 512]
+  latent_dim: 1024
 
 data_params:
   type: CustomVAEDataset
   opt_dataset: 
     train:
       dataroot_gt: /home/zyyou/datasets_bk/DIV2K/DIV2K_train_HR/
+      enlarge_ratio: 100
     val:
       dataroot_gt: /home/zyyou/datasets_bk/DIV2K/DIV2K_valid_HR/
-    train_batch_size: 8
-    val_batch_size:  8
+    train_batch_size: 64
+    val_batch_size:  64
     resize: 1024
-    patch_size: 64
+    patch_size: 128
     num_workers: 4
 
 exp_params:

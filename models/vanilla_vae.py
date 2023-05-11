@@ -7,7 +7,6 @@ from .types_ import *
 
 class VanillaVAE(BaseVAE):
 
-
     def __init__(self,
                  in_channels: int,
                  latent_dim: int,
@@ -56,8 +55,6 @@ class VanillaVAE(BaseVAE):
                     nn.BatchNorm2d(hidden_dims[i + 1]),
                     nn.LeakyReLU())
             )
-
-
 
         self.decoder = nn.Sequential(*modules)
 
@@ -138,7 +135,6 @@ class VanillaVAE(BaseVAE):
 
         kld_weight = kwargs['M_N'] # Account for the minibatch samples from the dataset
         recons_loss =F.mse_loss(recons, input)
-
 
         kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim = 1), dim = 0)
 

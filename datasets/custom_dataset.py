@@ -29,16 +29,16 @@ class CustomDataset(Dataset):
         self.opt = opt
         self.transform = transform
         self.gt_folder = opt["dataroot_gt"]
+        self.enlarge_ratio = opt.get("enlarge_ratio", 1)
 
         if "meta_info_file" in self.opt:
             with open(self.opt["meta_info_file"], "r") as fin:
                 self.gt_paths = [osp.join(self.gt_folder, line.strip().split(" ")[0]) for line in fin]
         else:
             self.gt_paths = sorted(list(scandir(self.gt_folder, full_path=True)))
+        self.gt_paths = self.gt_paths * self.enlarge_ratio
 
     def __getitem__(self, index):
-
-        # Load gt images. Dimension order: HWC; channel order: BGR
         gt_path = self.gt_paths[index]
         img = cv2.imread(gt_path)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
