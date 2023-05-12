@@ -9,7 +9,7 @@ model_params:
     kwargs:
       inchannels: 512
   stride: 64
-  latent_dim: 1024
+  latent_dim: 2048
   patch_size: &patch_size 128
 
 data_params:
@@ -27,15 +27,22 @@ data_params:
     num_workers: 32
 
 exp_params:
-  LR: 0.005
-  weight_decay: 0.0
-  scheduler_gamma: 0.95
-  kld_weight: 0.00025
+  optimizer:
+    type: AdamW
+    kwargs:
+      lr: 0.001
+      weight_decay: 0.0001
+  lr_scheduler:
+    type: MultiStepLR
+    kwargs:
+      milestones: [500, 800]
+      gamma: 0.25
+  kld_weight: 0.0001
   manual_seed: 1265
 
 trainer_params:
-  gpus: [1]
-  max_epochs: 100
+  gpus: [0, 1, 2, 3]
+  max_epochs: 1000
 
 logging_params:
   save_dir: logs/DIV/
