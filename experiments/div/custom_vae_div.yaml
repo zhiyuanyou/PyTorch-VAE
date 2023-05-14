@@ -16,23 +16,23 @@ data_params:
   type: CustomVAEDataset
   opt_dataset:
     train:
-      dataroot_gt: /home/zyyou/datasets_bk/DIV2K/DIV2K_train_HR_SynthLQ_mask/
+      dataroot_gt: /home/zyyou/datasets_bk/DIV2K/DIV2K_train_HR/
       enlarge_ratio: 100
       hflip: true
       resize: 1024
       crop_size: *patch_size
     val:
-      dataroot_gt: /home/zyyou/datasets_bk/DIV2K/DIV2K_valid_HR_SynthLQ_mask/
+      dataroot_gt: /home/zyyou/datasets_bk/DIV2K/DIV2K_train_HR/
       enlarge_ratio: 1
       hflip: true
       resize: 1024
       crop_size: *patch_size
     train_batch_size: 32
     val_batch_size: 32
-    num_workers: 32
+    num_workers: 16
 
 exp_params:
-  save_feature: true
+  save_feature: false
   optimizer:
     type: AdamW
     kwargs:
@@ -51,8 +51,8 @@ trainer_params:
   max_epochs: 1000
 
 val_params:
-  load_path: logs/Mask/VanillaVAE/version_0/checkpoints/last.ckpt
+  load_path: DIV/VanillaVAE/version_0/checkpoints/last.ckpt
 
 logging_params:
-  save_dir: logs/Mask/
+  save_dir: DIV/
   name: VanillaVAE
