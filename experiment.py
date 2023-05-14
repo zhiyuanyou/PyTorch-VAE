@@ -1,9 +1,12 @@
 import os
-from torch import optim
-from models import BaseVAE
-from models.types_ import *
+
+import numpy as np
 import pytorch_lightning as pl
 import torchvision.utils as vutils
+
+from models import BaseVAE
+from models.types_ import *
+from torch import optim
 
 
 def get_optimizer(parameters, config):
@@ -34,6 +37,8 @@ class VAEXperiment(pl.LightningModule):
 
         self.model = vae_model
         self.params = params
+        self.save_feature = params[
+            'save_feature'] if 'save_feature' in params else False
         self.curr_device = None
         self.hold_graph = False
         try:
@@ -72,6 +77,17 @@ class VAEXperiment(pl.LightningModule):
             M_N=1.0,  #real_img.shape[0]/ self.num_val_imgs,
             optimizer_idx=optimizer_idx,
             batch_idx=batch_idx)
+
+        if self.save_feature:
+            _, _, mu, log_var = results
+            mu = mu.detach().cpu().numpy()
+            log_var = log_var.detach().cpu().numpy()
+            mu_file = os.path.join(self.logger.log_dir, 'Features',
+                                   f'mu_batch{batch_idx}.npy')
+            log_var_file = os.path.join(self.logger.log_dir, 'Features',
+                                        f'mu_batch{batch_idx}.npy')
+            np.save(mu_file, mu)
+            np.save(log_var_file, log_var)
 
         self.log_dict(
             {f"val_{key}": val.item()

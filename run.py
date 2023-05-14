@@ -59,6 +59,7 @@ runner = Trainer(logger=tb_logger,
 
 Path(f"{tb_logger.log_dir}/Samples").mkdir(exist_ok=True, parents=True)
 Path(f"{tb_logger.log_dir}/Reconstructions").mkdir(exist_ok=True, parents=True)
+Path(f"{tb_logger.log_dir}/Features").mkdir(exist_ok=True, parents=True)
 
 if args.evaluate:
     print(f"======= Evaluating {config['model_params']['name']} =======")
