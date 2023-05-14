@@ -21,6 +21,7 @@ parser.add_argument('--config',
                     metavar='FILE',
                     help='path to the config file',
                     default='configs/vae.yaml')
+parser.add_argument('--evaluate', '-e', action='store_true')
 
 args = parser.parse_args()
 with open(args.filename, 'r') as file:
@@ -38,7 +39,6 @@ tb_logger = TensorBoardLogger(
 seed_everything(config['exp_params']['manual_seed'], True)
 
 model = vae_models[config['model_params']['name']](**config['model_params'])
-experiment = VAEXperiment(model, config['exp_params'])
 
 dataset_cls = getattr(datasets, config["data_params"]["type"])
 data = dataset_cls(**config["data_params"],
@@ -60,5 +60,14 @@ runner = Trainer(logger=tb_logger,
 Path(f"{tb_logger.log_dir}/Samples").mkdir(exist_ok=True, parents=True)
 Path(f"{tb_logger.log_dir}/Reconstructions").mkdir(exist_ok=True, parents=True)
 
-print(f"======= Training {config['model_params']['name']} =======")
-runner.fit(experiment, datamodule=data)
+if args.evaluate:
+    print(f"======= Evaluating {config['model_params']['name']} =======")
+    experiment = VAEXperiment.load_from_checkpoint(
+        config['val_params']['load_path'],
+        vae_model=model,
+        params=config['exp_params'])
+    runner.validate(experiment, datamodule=data)
+else:
+    print(f"======= Training {config['model_params']['name']} =======")
+    experiment = VAEXperiment(model, config['exp_params'])
+    runner.fit(experiment, datamodule=data)

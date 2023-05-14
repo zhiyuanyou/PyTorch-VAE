@@ -20,8 +20,8 @@ data_params:
       enlarge_ratio: 100
     val:
       dataroot_gt: /home/zyyou/datasets_bk/DIV2K/DIV2K_valid_HR/
-    train_batch_size: 64
-    val_batch_size:  64
+    train_batch_size: 32
+    val_batch_size:  32
     resize: 1024
     patch_size: *patch_size
     num_workers: 32
@@ -30,7 +30,7 @@ exp_params:
   optimizer:
     type: AdamW
     kwargs:
-      lr: 0.001
+      lr: 0.0001
       weight_decay: 0.0001
   lr_scheduler:
     type: MultiStepLR
