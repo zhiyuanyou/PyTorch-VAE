@@ -85,7 +85,7 @@ class VAEXperiment(pl.LightningModule):
             mu_file = os.path.join(self.logger.log_dir, 'Features',
                                    f'mu_batch{batch_idx}.npy')
             log_var_file = os.path.join(self.logger.log_dir, 'Features',
-                                        f'mu_batch{batch_idx}.npy')
+                                        f'log_var_batch{batch_idx}.npy')
             np.save(mu_file, mu)
             np.save(log_var_file, log_var)
 
