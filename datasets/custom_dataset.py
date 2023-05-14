@@ -10,33 +10,49 @@ from torchvision import transforms
 from .utils import scandir
 
 
-# Add your custom dataset class here
-class MyDataset(Dataset):
-    def __init__(self):
-        pass
-    
-    def __len__(self):
-        pass
-    
-    def __getitem__(self, idx):
-        pass
+class Resize(object):
+    def __init__(self, resize, resize_small=False):
+        self.resize = resize
+        self.resize_small = resize_small
+
+    def __call__(self, img):
+        w, h = img.width, img.height
+        if max(h, w) > self.resize or self.resize_small:
+            ratio = self.resize / max(h, w)
+            h_new, w_new = round(h * ratio), round(w * ratio)
+            img = img.resize((w_new, h_new), Image.Resampling.BICUBIC)
+        return img
 
 
 class CustomDataset(Dataset):
-
-    def __init__(self, opt, transform):
+    def __init__(self, opt):
         super(CustomDataset, self).__init__()
         self.opt = opt
-        self.transform = transform
+        self.hflip = opt["hflip"] if "hfilp" in opt else None
+        self.resize = opt["resize"] if "resize" in opt else None
+        self.crop_size = opt["crop_size"] if "crop_size" in opt else None
+
         self.gt_folder = opt["dataroot_gt"]
         self.enlarge_ratio = opt.get("enlarge_ratio", 1)
 
         if "meta_info_file" in self.opt:
             with open(self.opt["meta_info_file"], "r") as fin:
-                self.gt_paths = [osp.join(self.gt_folder, line.strip().split(" ")[0]) for line in fin]
+                self.gt_paths = [
+                    osp.join(self.gt_folder,
+                             line.strip().split(" ")[0]) for line in fin
+                ]
         else:
-            self.gt_paths = sorted(list(scandir(self.gt_folder, full_path=True)))
+            self.gt_paths = sorted(
+                list(scandir(self.gt_folder, full_path=True)))
         self.gt_paths = self.gt_paths * self.enlarge_ratio
+
+        if self.hflip:
+            self.fn_hflip = transforms.RandomHorizontalFlip()
+        if self.resize:
+            self.fn_resize = Resize(self.resize)
+        if self.crop_size:
+            self.fn_crop = transforms.RandomCrop(self.crop_size)
+        self.fn_totensor = transforms.ToTensor()
 
     def __getitem__(self, index):
         gt_path = self.gt_paths[index]
@@ -44,8 +60,13 @@ class CustomDataset(Dataset):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = Image.fromarray(img, "RGB")
 
-        if self.transform:
-            img = self.transform(img)
+        if self.hflip:
+            img = self.fn_hflip(img)
+        if self.resize:
+            img = self.fn_resize(img)
+        if self.crop_size:
+            img = self.fn_crop(img)
+        img = self.fn_totensor(img)
 
         return img, 0
 
@@ -54,20 +75,6 @@ class CustomDataset(Dataset):
 
 
 class CustomVAEDataset(LightningDataModule):
-    """
-    PyTorch Lightning data module 
-
-    Args:
-        data_dir: root directory of your dataset.
-        train_batch_size: the batch size to use during training.
-        val_batch_size: the batch size to use during validation.
-        patch_size: the size of the crop to take from the original images.
-        num_workers: the number of parallel workers to create to load data
-            items (see PyTorch's Dataloader documentation for more details).
-        pin_memory: whether prepared items should be loaded into pinned memory
-            or not. This can improve performance on GPUs.
-    """
-
     def __init__(
         self,
         opt_dataset: str,
@@ -75,37 +82,15 @@ class CustomVAEDataset(LightningDataModule):
         **kwargs,
     ):
         super().__init__()
-
         self.opt_dataset = opt_dataset
         self.train_batch_size = opt_dataset["train_batch_size"]
         self.val_batch_size = opt_dataset["val_batch_size"]
-        self.resize = opt_dataset["resize"]
-        self.patch_size = opt_dataset["patch_size"]
         self.num_workers = opt_dataset["num_workers"]
         self.pin_memory = pin_memory
 
     def setup(self, stage: Optional[str] = None) -> None:
-
-        train_transforms = transforms.Compose([transforms.RandomHorizontalFlip(),
-                                               transforms.Resize(self.resize),
-                                              transforms.RandomCrop(self.patch_size),
-                                              transforms.ToTensor(),])
-        
-        val_transforms = transforms.Compose([transforms.RandomHorizontalFlip(),
-                                             transforms.Resize(self.resize),
-                                            transforms.RandomCrop(self.patch_size),
-                                            transforms.ToTensor(),])
-        
-        self.train_dataset = CustomDataset(
-            self.opt_dataset["train"],
-            transform=train_transforms,
-        )
-
-        self.val_dataset = CustomDataset(
-            self.opt_dataset["val"],
-            transform=val_transforms,
-        )
-#       ===============================================================
+        self.train_dataset = CustomDataset(self.opt_dataset["train"])
+        self.val_dataset = CustomDataset(self.opt_dataset["val"])
 
     def train_dataloader(self) -> DataLoader:
         return DataLoader(
@@ -124,11 +109,11 @@ class CustomVAEDataset(LightningDataModule):
             shuffle=False,
             pin_memory=self.pin_memory,
         )
-    
+
     def test_dataloader(self) -> Union[DataLoader, List[DataLoader]]:
         return DataLoader(
             self.val_dataset,
-            batch_size=144,
+            batch_size=self.val_batch_size,
             num_workers=self.num_workers,
             shuffle=True,
             pin_memory=self.pin_memory,
