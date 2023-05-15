@@ -49,7 +49,12 @@ class CustomDataset(Dataset):
         if self.hflip:
             self.fn_hflip = transforms.RandomHorizontalFlip()
         if self.resize:
-            self.fn_resize = Resize(self.resize)
+            if self.resize["type"] == "long":
+                self.fn_resize = Resize(self.resize["size"])
+            elif self.resize["type"] == "short":
+                self.fn_resize = transforms.Resize(self.resize["size"])
+            else:
+                raise NotImplementedError
         if self.crop_size:
             self.fn_crop = transforms.RandomCrop(self.crop_size)
         self.fn_totensor = transforms.ToTensor()
