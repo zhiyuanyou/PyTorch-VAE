@@ -155,6 +155,7 @@ class ResNet(nn.Module):
         block,
         layers,
         inchannels,
+        outchannels,
         frozen_layers=[],
         groups=1,
         width_per_group=64,
@@ -165,6 +166,7 @@ class ResNet(nn.Module):
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
         self.inplanes = inchannels
+        self.outchannels = outchannels
         self.frozen_layers = frozen_layers
         layer_outplanes = [64] + [
             i * block.expansion for i in [64, 128, 256, 512]
@@ -183,7 +185,7 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer4 = self._make_layer(block, 64, layers[0], stride=2)
         self.conv_final = nn.Sequential(
-            nn.Conv2d(64, 3, kernel_size=3, padding=1), nn.Tanh())
+            nn.Conv2d(64, outchannels, kernel_size=3, padding=1), nn.Tanh())
 
     def _make_layer(self, block, planes, blocks, stride=1):
         norm_layer = self._norm_layer

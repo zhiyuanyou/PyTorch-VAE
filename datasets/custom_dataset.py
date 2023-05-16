@@ -28,6 +28,7 @@ class CustomDataset(Dataset):
     def __init__(self, opt):
         super(CustomDataset, self).__init__()
         self.opt = opt
+        self.mode = opt["mode"]
         self.hflip = opt["hflip"] if "hfilp" in opt else None
         self.resize = opt["resize"] if "resize" in opt else None
         self.crop_size = opt["crop_size"] if "crop_size" in opt else None
@@ -62,9 +63,14 @@ class CustomDataset(Dataset):
     def __getitem__(self, index):
         gt_path = self.gt_paths[index]
         img = cv2.imread(gt_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = Image.fromarray(img, "RGB")
-
+        if self.mode == "RGB":
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = Image.fromarray(img, "RGB")
+        elif self.mode == "GRAY":
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            img = Image.fromarray(img, "L")
+        else:
+            raise NotImplementedError
         if self.hflip:
             img = self.fn_hflip(img)
         if self.resize:
