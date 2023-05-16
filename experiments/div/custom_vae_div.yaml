@@ -3,11 +3,12 @@ model_params:
   encoder:
     type: models.encoders.resnet18
     kwargs:
-      inchannels: 3
+      inchannels: &img_dim 3
   decoder:
     type: models.decoders.resnet18
     kwargs:
       inchannels: 512
+      outchannels: *img_dim
   stride: 64
   latent_dim: 2048
   patch_size: &patch_size 128
@@ -18,14 +19,20 @@ data_params:
     train:
       dataroot_gt: /home/zyyou/datasets_bk/DIV2K/DIV2K_train_HR/
       enlarge_ratio: 100
+      mode: RGB
       hflip: true
-      resize: 1024
+      resize:
+        type: long
+        size: 1024
       crop_size: *patch_size
     val:
       dataroot_gt: /home/zyyou/datasets_bk/DIV2K/DIV2K_train_HR/
       enlarge_ratio: 1
+      mode: RGB
       hflip: true
-      resize: 1024
+      resize:
+        type: long
+        size: 1024
       crop_size: *patch_size
     train_batch_size: 32
     val_batch_size: 32
