@@ -1,4 +1,5 @@
 experiments/*/res*/
+*version_*/
 
 Data/
 logs/
